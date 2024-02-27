@@ -1,84 +1,36 @@
-import av
-import os
-import sys
+import cv2
+import numpy as np
 import streamlit as st
-from streamlit_webrtc import VideoHTMLAttributes, webrtc_streamer
-from aiortc.contrib.media import MediaRecorder
-
-
-BASE_DIR = os.path.abspath(os.path.join(__file__, '../../'))
-sys.path.append(BASE_DIR)
-
 
 from utils import get_mediapipe_pose
 from process_frame import ProcessFrame
-from thresholds import get_thresholds_beginner, get_thresholds_pro
-
+from thresholds import get_thresholds_beginner
 
 st.title('AI Fitness Trainer: Squats Analysis')
 
-mode = st.radio('Select Mode', ['Beginner', 'Pro'], horizontal=True)
-#hint the user that the thresholds are different for beginner and pro mode
-st.info('Thresholds are different for Beginner and Pro mode. Make sure to select the correct mode.')
-
-
-thresholds = None 
-
-if mode == 'Beginner':
-    thresholds = get_thresholds_beginner()
-
-elif mode == 'Pro':
-    thresholds = get_thresholds_pro()
-
-
+thresholds = get_thresholds_beginner()
 live_process_frame = ProcessFrame(thresholds=thresholds, flip_frame=True)
 pose = get_mediapipe_pose()
 
+# Define the video capture device
+cap = cv2.VideoCapture(0)
 
-if 'download' not in st.session_state:
-    st.session_state['download'] = False
+def video_frame_callback(frame):
+    ret, frame = cap.read()
+    if not ret:
+        return None
+    frame, _ = live_process_frame.process(frame, pose)
+    return frame
 
-# output_video_file = f'output_live.flv'
+# Display the processed video stream
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+    processed_frame, _ = live_process_frame.process(frame, pose)
+    cv2.imshow('Processed Frame', processed_frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-  
-
-def video_frame_callback(frame: av.VideoFrame):
-    frame = frame.to_ndarray(format="rgb24")  # Decode and get RGB frame
-    frame, _ = live_process_frame.process(frame, pose)  # Process frame
-    return av.VideoFrame.from_ndarray(frame, format="rgb24")  # Encode and return BGR frame
-
-
-# def out_recorder_factory() -> MediaRecorder:
-#         return MediaRecorder(output_video_file)
-
-
-ctx = webrtc_streamer(
-                        key="Squats-pose-analysis",
-                        video_frame_callback=video_frame_callback,
-                        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},  # Add this config
-                        media_stream_constraints={"video": {"width": {'min':480, 'ideal':480}}, "audio": False},
-                        video_html_attrs=VideoHTMLAttributes(autoPlay=True, controls=False, muted=False),
-                        # out_recorder_factory=out_recorder_factory
-                    )
-
-
-download_button = st.empty()
-
-# if os.path.exists(output_video_file):
-#     with open(output_video_file, 'rb') as op_vid:
-#         download = download_button.download_button('Download Video', data = op_vid, file_name='output_live.flv')
-
-        # if download:
-        #     st.session_state['download'] = True
-
-
-
-# if os.path.exists(output_video_file) and st.session_state['download']:
-#     os.remove(output_video_file)
-#     st.session_state['download'] = False
-#     download_button.empty()
-
-
-    
-
-
+cap.release()
+cv2.destroyAllWindows()
