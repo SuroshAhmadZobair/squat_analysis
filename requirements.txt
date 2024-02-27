@@ -1,3 +1,4 @@
+av
 numpy
 opencv-python
 opencv-python-headless
@@ -5,4 +6,3 @@ mediapipe
 streamlit
 streamlit_webrtc
 ffmpeg
-av
