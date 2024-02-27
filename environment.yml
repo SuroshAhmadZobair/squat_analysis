@@ -1,0 +1,4 @@
+name: lcv2
+channels:
+  - defaults
+prefix: /home/engrapher/anaconda3/envs/lcv2

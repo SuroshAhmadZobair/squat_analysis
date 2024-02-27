@@ -38,7 +38,7 @@ pose = get_mediapipe_pose()
 if 'download' not in st.session_state:
     st.session_state['download'] = False
 
-output_video_file = f'output_live.flv'
+# output_video_file = f'output_live.flv'
 
   
 
@@ -48,8 +48,8 @@ def video_frame_callback(frame: av.VideoFrame):
     return av.VideoFrame.from_ndarray(frame, format="rgb24")  # Encode and return BGR frame
 
 
-def out_recorder_factory() -> MediaRecorder:
-        return MediaRecorder(output_video_file)
+# def out_recorder_factory() -> MediaRecorder:
+#         return MediaRecorder(output_video_file)
 
 
 ctx = webrtc_streamer(
@@ -58,25 +58,25 @@ ctx = webrtc_streamer(
                         rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},  # Add this config
                         media_stream_constraints={"video": {"width": {'min':480, 'ideal':480}}, "audio": False},
                         video_html_attrs=VideoHTMLAttributes(autoPlay=True, controls=False, muted=False),
-                        out_recorder_factory=out_recorder_factory
+                        # out_recorder_factory=out_recorder_factory
                     )
 
 
 download_button = st.empty()
 
-if os.path.exists(output_video_file):
-    with open(output_video_file, 'rb') as op_vid:
-        download = download_button.download_button('Download Video', data = op_vid, file_name='output_live.flv')
+# if os.path.exists(output_video_file):
+#     with open(output_video_file, 'rb') as op_vid:
+#         download = download_button.download_button('Download Video', data = op_vid, file_name='output_live.flv')
 
-        if download:
-            st.session_state['download'] = True
+        # if download:
+        #     st.session_state['download'] = True
 
 
 
-if os.path.exists(output_video_file) and st.session_state['download']:
-    os.remove(output_video_file)
-    st.session_state['download'] = False
-    download_button.empty()
+# if os.path.exists(output_video_file) and st.session_state['download']:
+#     os.remove(output_video_file)
+#     st.session_state['download'] = False
+#     download_button.empty()
 
 
     
