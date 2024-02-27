@@ -5,3 +5,4 @@ mediapipe
 streamlit
 streamlit_webrtc
 ffmpeg
+av
